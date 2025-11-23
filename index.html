@@ -3,384 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus | Intelligent Attendance</title>
+    <title>Nexus | Enterprise Attendance</title>
     
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
     <!-- Libraries -->
+    <!-- AI & DB -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Reporting (Excel & PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         :root {
-            --primary: #3B82F6;
-            --primary-glow: rgba(59, 130, 246, 0.4);
-            --bg-body: #F8FAFC;
+            --primary: #2563EB;
+            --secondary: #475569;
+            --bg: #F8FAFC;
             --surface: #FFFFFF;
-            --sidebar: #0F172A;
-            --text-main: #1E293B;
-            --text-muted: #64748B;
+            --text: #1E293B;
             --success: #10B981;
             --danger: #EF4444;
-            --radius: 16px;
-            --header-h: 70px;
-            --nav-w: 260px;
+            --radius: 12px;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            overflow: hidden; /* Prevent scrolling body */
-        }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; overflow: hidden; }
 
-        /* --- NAVIGATION (RESPONSIVE) --- */
-        aside {
-            width: var(--nav-w);
-            background-color: var(--sidebar);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            z-index: 50;
-            transition: 0.3s;
-        }
+        /* NAV */
+        aside { width: 80px; background: #0F172A; display: flex; flex-direction: column; align-items: center; padding: 20px 0; z-index: 50; }
+        .nav-item { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 15px; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(37,99,235,0.4); }
 
-        .brand {
-            padding: 30px 20px;
-            color: white; font-size: 1.4rem; font-weight: 700;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .brand span { color: var(--primary); }
-
-        .nav-menu { list-style: none; padding: 0 10px; margin: 0; display: flex; flex-direction: column; gap: 5px; }
-        
-        .nav-item {
-            padding: 15px 20px;
-            border-radius: 12px;
-            color: #94A3B8;
-            cursor: pointer;
-            display: flex; align-items: center; gap: 15px;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
-        .nav-icon { font-size: 24px; }
-        .nav-label { font-size: 0.95rem; }
-
-        .system-status { padding: 20px; }
-        .status-badge {
-            background: rgba(255,255,255,0.1); padding: 10px 15px;
-            border-radius: 50px; color: #94A3B8; font-size: 0.8rem;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .status-dot { width: 8px; height: 8px; background: #64748B; border-radius: 50%; }
-        .status-dot.online { background: var(--success); box-shadow: 0 0 10px var(--success); }
-
-        /* --- MAIN LAYOUT --- */
-        main {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-        }
-
-        header { margin-bottom: 25px; }
-        h1 { font-size: 1.8rem; margin: 0; font-weight: 700; }
-        p.subtitle { color: var(--text-muted); margin: 5px 0 0 0; }
-
-        /* --- KIOSK GRID --- */
-        .kiosk-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 25px;
-            height: calc(100vh - 140px); /* Fill remaining height */
-        }
-        
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            display: flex; flex-direction: column;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.03);
-        }
-
-        /* Camera Feed */
-        .camera-container {
-            flex: 1; position: relative;
-            background: #000; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-        }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-        .scan-tag {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-            color: white; padding: 6px 14px; border-radius: 20px;
-            font-size: 0.8rem; display: flex; align-items: center; gap: 6px;
-        }
-
-        /* Timeline Feed */
-        .feed-container { padding: 20px; overflow-y: auto; }
-        .feed-title { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .log-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px; border-radius: 12px;
-            margin-bottom: 8px; background: #F8FAFC;
-            animation: slideIn 0.3s ease;
-        }
-        .log-avatar {
-            width: 38px; height: 38px; background: #E0E7FF; color: var(--primary);
-            border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 1.1rem;
-        }
-
-        /* --- MOBILE & TABLET OVERRIDES --- */
-        @media (max-width: 1024px) {
-            body { flex-direction: column; }
-            
-            /* Sidebar becomes Bottom Nav */
-            aside {
-                width: 100%; height: auto;
-                position: fixed; bottom: 0; left: 0;
-                flex-direction: row; align-items: center;
-                padding: 10px 15px;
-                padding-bottom: max(10px, env(safe-area-inset-bottom));
-                background: rgba(15, 23, 42, 0.95);
-                backdrop-filter: blur(12px);
-                box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            }
-
-            .brand, .system-status { display: none; } /* Hide text logo on mobile */
-            
-            .nav-menu { 
-                flex-direction: row; width: 100%; 
-                justify-content: space-around; padding: 0;
-            }
-            .nav-item { 
-                flex-direction: column; gap: 4px; padding: 8px 0; 
-                background: transparent !important; width: 60px;
-            }
-            .nav-item.active { color: var(--primary); box-shadow: none; }
-            .nav-item.active .nav-icon { background: rgba(59, 130, 246, 0.15); padding: 5px 15px; border-radius: 20px; }
-            .nav-label { font-size: 0.7rem; }
-            .nav-icon { font-size: 22px; }
-
-            /* Main Adjustments */
-            main { padding: 20px 20px 100px 20px; } /* Bottom padding for nav bar */
-            .kiosk-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
-            
-            .camera-container {
-                height: 60vh; /* Camera takes 60% of screen height on mobile */
-                border-radius: var(--radius);
-            }
-            .card { overflow: visible; box-shadow: none; background: transparent; }
-            .feed-container { background: var(--surface); border-radius: var(--radius); height: 300px; }
-            
-            /* Inputs */
-            .reg-container { grid-template-columns: 1fr; padding: 20px; }
-            .form-side { margin-top: 20px; }
-            .stats-row { grid-template-columns: 1fr; }
-        }
-
-        /* --- UTILS --- */
-        .page-view { display: none; animation: fadeIn 0.3s; }
+        /* MAIN */
+        main { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
+        .page-view { display: none; animation: fadeIn 0.3s; max-width: 800px; margin: 0 auto; }
         .page-view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Form Styling */
-        input.styled-input {
-            width: 100%; padding: 16px; border: 2px solid #E2E8F0;
-            border-radius: 12px; font-size: 1rem; outline: none; transition: 0.3s;
-            background: #fff;
+        h1 { font-size: 1.6rem; margin: 0 0 5px 0; }
+        p.subtitle { color: #64748B; margin-bottom: 25px; }
+
+        /* CARDS */
+        .card { background: var(--surface); padding: 25px; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+
+        /* INPUTS & BUTTONS */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748B; margin-bottom: 5px; }
+        .styled-input { width: 100%; padding: 12px; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; transition: 0.3s; }
+        .styled-input:focus { border-color: var(--primary); }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-dark { background: #1E293B; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* CAMERA */
+        .cam-box { background: #000; border-radius: var(--radius); overflow: hidden; position: relative; aspect-ratio: 4/3; margin-bottom: 15px; display: none; }
+        .cam-box.active { display: block; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        canvas { position: absolute; inset: 0; }
+
+        /* STATUS BADGES */
+        .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .st-in { background: #DCFCE7; color: #166534; }
+        .st-out { background: #FEE2E2; color: #991B1B; }
+
+        /* ADMIN TABS */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-weight: 600; color: #64748B; cursor: pointer; border-radius: 6px; }
+        .tab-btn.active { background: #E2E8F0; color: var(--text); }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            aside { width: 100%; flex-direction: row; justify-content: space-around; padding: 10px; position: fixed; bottom: 0; background: white; border-top: 1px solid #E2E8F0; }
+            .nav-item { width: auto; background: transparent !important; color: #94A3B8; margin: 0; }
+            .nav-item.active { color: var(--primary); }
+            main { padding-bottom: 80px; }
         }
-        input.styled-input:focus { border-color: var(--primary); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        button.styled-btn {
-            width: 100%; padding: 16px; background: var(--primary);
-            color: white; border: none; border-radius: 12px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            display: flex; justify-content: center; gap: 8px;
-            touch-action: manipulation; /* Faster touch response */
-        }
-        button.styled-btn:disabled { background: #CBD5E1; }
-
-        /* Admin Table */
-        .table-responsive { overflow-x: auto; background: white; border-radius: 12px; }
-        table { width: 100%; min-width: 500px; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #F1F5F9; }
-        
-        /* Modal & Toast */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            display: flex; justify-content: center; align-items: center; z-index: 2000;
-            opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .modal-card { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
-
-        #toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: #1E293B; color: white; padding: 12px 24px; border-radius: 50px;
-            display: flex; align-items: center; gap: 10px; z-index: 3000;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            white-space: nowrap; font-size: 0.9rem;
-        }
-        #toast.visible { transform: translateX(-50%) translateY(0); }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -100px); background: #1E293B; color: white; padding: 12px 24px; border-radius: 30px; transition: 0.4s; z-index: 2000; }
+        #toast.visible { transform: translate(-50%, 0); }
     </style>
 </head>
 <body>
 
-    <!-- NAVIGATION (Sidebar Desktop / Bottom Bar Mobile) -->
     <aside>
-        <div class="brand">
-            <span class="material-icons-round">face</span> Nexus<span>AI</span>
-        </div>
-        
-        <ul class="nav-menu">
-            <li class="nav-item active" onclick="navTo('kiosk', this)">
-                <span class="material-icons-round nav-icon">videocam</span>
-                <span class="nav-label">Scan</span>
-            </li>
-            <li class="nav-item" onclick="navTo('register', this)">
-                <span class="material-icons-round nav-icon">person_add</span>
-                <span class="nav-label">Add</span>
-            </li>
-            <li class="nav-item" onclick="navTo('admin', this)">
-                <span class="material-icons-round nav-icon">dashboard</span>
-                <span class="nav-label">Admin</span>
-            </li>
-        </ul>
-
-        <div class="system-status">
-            <div class="status-badge">
-                <div class="status-dot" id="sys-dot"></div>
-                <span id="sys-text">Offline</span>
-            </div>
-        </div>
+        <div class="nav-item active" onclick="navTo('home', this)"><span class="material-icons-round">face</span></div>
+        <div class="nav-item" onclick="navTo('register', this)"><span class="material-icons-round">person_add</span></div>
+        <div class="nav-item" onclick="navTo('admin', this)"><span class="material-icons-round">admin_panel_settings</span></div>
     </aside>
 
-    <!-- CONTENT -->
     <main>
-        <!-- KIOSK VIEW -->
-        <div id="view-kiosk" class="page-view active">
-            <header>
-                <h1>Attendance</h1>
-                <p class="subtitle">Looking for faces...</p>
-            </header>
+        <!-- VIEW 1: ATTENDANCE -->
+        <div id="view-home" class="page-view active">
+            <h1>Staff Access</h1>
+            <p class="subtitle">Check-In / Check-Out Verification</p>
 
-            <div class="kiosk-grid">
-                <div class="camera-container card">
-                    <video id="video-kiosk" autoplay muted playsinline></video>
-                    <canvas id="canvas-kiosk"></canvas>
-                    <div class="scan-tag">
-                        <span class="material-icons-round" style="font-size:14px; color:#10B981">circle</span> Live
-                    </div>
-                </div>
-
-                <div class="card feed-container">
-                    <div class="feed-title">Recent Check-ins</div>
-                    <div id="log-feed">
-                        <div style="text-align:center; color:#94A3B8; margin-top:20px; font-size:0.9rem;">
-                            No activity yet
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- REGISTER VIEW -->
-        <div id="view-register" class="page-view">
-            <header>
-                <h1>New Staff</h1>
-                <p class="subtitle">Add a face to the database.</p>
-            </header>
-
-            <div class="reg-container card" style="background:white; padding:20px;">
-                <div class="camera-container" style="height:300px; border-radius:12px;">
-                    <video id="video-reg" autoplay muted playsinline></video>
+            <div class="card">
+                <div class="input-group">
+                    <label>YOUR NAME</label>
+                    <input type="text" id="att-name" class="styled-input" placeholder="Enter name..." onchange="checkUserStatus()">
                 </div>
                 
-                <div class="form-side">
-                    <div style="margin-bottom:20px;">
-                        <label style="font-weight:600; font-size:0.9rem; color:var(--text-muted); display:block; margin-bottom:8px;">FULL NAME</label>
-                        <input type="text" id="reg-name" class="styled-input" placeholder="e.g. Rahul Sharma">
-                    </div>
-                    <button id="btn-reg" class="styled-btn" onclick="registerUser()">
-                        <span class="material-icons-round">center_focus_weak</span> Capture Face
+                <div id="status-display" style="margin-bottom:15px; display:none; padding:10px; background:#F1F5F9; border-radius:8px; text-align:center;">
+                    Current Status: <span id="current-status" style="font-weight:bold">...</span>
+                </div>
+
+                <div id="action-buttons" style="display:none;">
+                    <button class="btn btn-success" id="btn-in" onclick="startCamera('IN')">
+                        <span class="material-icons-round">login</span> CHECK IN
+                    </button>
+                    <button class="btn btn-danger" id="btn-out" onclick="startCamera('OUT')" style="margin-top:10px; display:none;">
+                        <span class="material-icons-round">logout</span> CHECK OUT
                     </button>
                 </div>
             </div>
+
+            <!-- Camera Area -->
+            <div class="cam-box" id="att-cam">
+                <video id="video-att" autoplay muted playsinline></video>
+                <canvas id="canvas-att"></canvas>
+            </div>
+            <button class="btn btn-dark" id="btn-cancel" onclick="stopCamera()" style="display:none;">Cancel Scan</button>
         </div>
 
-        <!-- ADMIN VIEW -->
-        <div id="view-admin" class="page-view">
-            <header>
-                <h1>Dashboard</h1>
-                <p class="subtitle">System Overview</p>
-            </header>
-
-            <div class="stats-row" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:15px; margin-bottom:25px;">
-                <div class="card" style="padding:20px; text-align:center;">
-                    <h2 id="stat-total" style="margin:0; font-size:2rem;">0</h2>
-                    <span style="color:var(--text-muted); font-size:0.8rem;">Total Staff</span>
+        <!-- VIEW 2: REGISTER -->
+        <div id="view-register" class="page-view">
+            <h1>Registration</h1>
+            <p class="subtitle">Add new employee face data.</p>
+            
+            <div class="card">
+                <div class="input-group">
+                    <label>FULL NAME</label>
+                    <input type="text" id="reg-name" class="styled-input" placeholder="e.g. John Doe">
                 </div>
-                <div class="card" style="padding:20px; text-align:center;">
-                    <h2 id="stat-today" style="margin:0; font-size:2rem; color:var(--primary);">0</h2>
-                    <span style="color:var(--text-muted); font-size:0.8rem;">Present Today</span>
+                <button class="btn btn-primary" onclick="openRegCam()">Open Camera</button>
+            </div>
+
+            <div class="cam-box" id="reg-cam">
+                <video id="video-reg" autoplay muted playsinline></video>
+            </div>
+            <button class="btn btn-success" id="btn-capture" onclick="captureFace()" style="display:none;">Capture & Save</button>
+        </div>
+
+        <!-- VIEW 3: ADMIN -->
+        <div id="view-admin" class="page-view">
+            <h1>Admin Portal</h1>
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="switchAdminTab('manual')">Manual Entry</button>
+                <button class="tab-btn" onclick="switchAdminTab('reports')">Reports</button>
+            </div>
+
+            <!-- Tab 1: Manual Entry -->
+            <div id="tab-manual" class="admin-section active">
+                <div class="card">
+                    <h3>Manual Attendance Correction</h3>
+                    <div class="input-group">
+                        <label>Employee Name</label>
+                        <input type="text" id="man-name" class="styled-input">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="man-date" class="styled-input">
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div class="input-group">
+                            <label>In Time</label>
+                            <input type="time" id="man-in" class="styled-input">
+                        </div>
+                        <div class="input-group">
+                            <label>Out Time</label>
+                            <input type="time" id="man-out" class="styled-input">
+                        </div>
+                    </div>
+                    <button class="btn btn-dark" onclick="manualEntry()">Save Record</button>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table id="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body"></tbody>
-                </table>
+            <!-- Tab 2: Reports -->
+            <div id="tab-reports" class="admin-section">
+                <div class="card">
+                    <h3>Generate Monthly Report</h3>
+                    <div class="input-group">
+                        <label>Select Month</label>
+                        <input type="month" id="report-month" class="styled-input">
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <button class="btn btn-success" onclick="generateReport('excel')">
+                            <span class="material-icons-round">table_view</span> Excel
+                        </button>
+                        <button class="btn btn-danger" onclick="generateReport('pdf')">
+                            <span class="material-icons-round">picture_as_pdf</span> PDF
+                        </button>
+                    </div>
+                </div>
+                <div style="margin-top:20px; font-size:0.9rem; color:#64748B;">
+                    * Report includes: Total Days Present, Total Hours Worked, and individual timestamps.
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- PIN MODAL -->
-    <div id="pin-modal" class="modal-overlay">
-        <div class="modal-card">
-            <span class="material-icons-round" style="font-size:40px; color:var(--primary); margin-bottom:15px;">lock</span>
-            <h3 style="margin:0 0 10px 0;">Admin Access</h3>
-            <input type="password" id="pin-input" class="styled-input" style="text-align:center; letter-spacing:5px; margin-bottom:20px;" maxlength="4" placeholder="••••">
-            <div style="display:flex; gap:10px;">
-                <button onclick="closeModal()" class="styled-btn" style="background:#F1F5F9; color:#64748B;">Cancel</button>
-                <button onclick="verifyPin()" class="styled-btn">Unlock</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST -->
-    <div id="toast">
-        <span class="material-icons-round" id="t-icon">check_circle</span>
-        <span id="t-msg">Success</span>
-    </div>
+    <div id="toast">Message</div>
 
     <script>
-        // --- 1. FIREBASE CONFIGURATION (REPLACE THESE) ---
-        const firebaseConfig = {
+        // --- 1. FIREBASE CONFIG ---
+       const firebaseConfig = {
   apiKey: "AIzaSyC51fLDt-4UwSm8y6fwwIyah6JprTskAbI",
   authDomain: "metroirittyattendance.firebaseapp.com",
   projectId: "metroirittyattendance",
@@ -388,199 +228,331 @@
   messagingSenderId: "647706271340",
   appId: "1:647706271340:web:ab3c5257aeeeaaef34c249"
 };
-        // ------------------------------------------------
+        // -------------------------
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // GLOBALS
         let currentStream, faceMatcher, detectInterval;
         let labeledFaceDescriptors = [];
-        let pendingAdminNav = null;
-        let todayCount = 0;
-
-        const els = {
-            videoKiosk: document.getElementById('video-kiosk'),
-            videoReg: document.getElementById('video-reg'),
-            canvas: document.getElementById('canvas-kiosk'),
-            sysDot: document.getElementById('sys-dot'),
-            sysText: document.getElementById('sys-text'),
-            modal: document.getElementById('pin-modal'),
-            pinInput: document.getElementById('pin-input')
-        };
+        let scanType = 'IN'; // 'IN' or 'OUT'
+        let targetUser = '';
 
         window.onload = async () => {
-            els.sysText.innerText = "Loading AI...";
-            try {
-                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-                // Load TinyFaceDetector for better mobile performance
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL)
-                ]);
-                
-                els.sysDot.classList.add('online');
-                els.sysText.innerText = "Online";
-                await loadFaceDB();
-                startKioskMode();
-            } catch (e) {
-                console.error(e);
-                showToast("AI Load Failed", "error");
-            }
+            showToast("Loading System...");
+            const URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(URL),
+                faceapi.nets.ssdMobilenetv1.loadFromUri(URL)
+            ]);
+            await loadFaceDB();
+            // Set default date for manual entry
+            document.getElementById('man-date').valueAsDate = new Date();
+            showToast("System Ready");
         };
 
+        // --- NAVIGATION ---
         function navTo(view, el) {
-            if(view === 'admin') {
-                pendingAdminNav = el;
-                els.modal.classList.add('open');
-                els.pinInput.value = '';
-                setTimeout(() => els.pinInput.focus(), 100);
-                return;
-            }
-            performNav(view, el);
-        }
-
-        function performNav(view, el) {
+            stopCamera();
             document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
             document.getElementById('view-' + view).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
             if(el) el.classList.add('active');
-
-            stopCamera();
-            if(view === 'kiosk') startKioskMode();
-            if(view === 'register') startCamera(els.videoReg);
-            if(view === 'admin') loadAdminData();
         }
 
-        function closeModal() { els.modal.classList.remove('open'); }
-        
-        function verifyPin() {
-            if(els.pinInput.value === "0000") {
-                closeModal();
-                performNav('admin', pendingAdminNav);
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-section').forEach(e => e.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // --- ATTENDANCE LOGIC (CHECK IN/OUT) ---
+        async function checkUserStatus() {
+            const name = document.getElementById('att-name').value.trim();
+            if(!name) return;
+
+            // Find if user exists
+            const exists = labeledFaceDescriptors.some(lb => lb.label.toLowerCase() === name.toLowerCase());
+            if(!exists) return showToast("User not registered");
+
+            // Check today's status
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            // Query: Find logs for this user today where checkOut is missing
+            const snapshot = await db.collection('attendance')
+                .where('name', '==', name)
+                .where('dateStr', '==', todayStr)
+                .where('checkOut', '==', null)
+                .get();
+
+            const statusDisplay = document.getElementById('status-display');
+            const statusText = document.getElementById('current-status');
+            const btnBox = document.getElementById('action-buttons');
+            const btnIn = document.getElementById('btn-in');
+            const btnOut = document.getElementById('btn-out');
+
+            statusDisplay.style.display = 'block';
+            btnBox.style.display = 'block';
+
+            if (!snapshot.empty) {
+                // User is currently IN, needs to Check OUT
+                statusText.innerText = "CLOCKED IN";
+                statusText.style.color = "green";
+                btnIn.style.display = 'none';
+                btnOut.style.display = 'flex';
+                // Store doc ID to update later
+                btnOut.dataset.docId = snapshot.docs[0].id;
             } else {
-                showToast("Wrong PIN", "error");
+                // User is OUT, needs to Check IN
+                statusText.innerText = "NOT IN";
+                statusText.style.color = "red";
+                btnIn.style.display = 'flex';
+                btnOut.style.display = 'none';
             }
         }
 
-        function startCamera(videoEl) {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-                .then(stream => {
-                    currentStream = stream;
-                    videoEl.srcObject = stream;
-                })
-                .catch(e => showToast("Camera Denied", "error"));
+        async function startCamera(type) {
+            scanType = type;
+            targetUser = document.getElementById('att-name').value.trim();
+            document.getElementById('att-cam').classList.add('active');
+            document.getElementById('btn-cancel').style.display = 'block';
+            document.getElementById('action-buttons').style.display = 'none'; // Hide buttons while scanning
+
+            const videoEl = document.getElementById('video-att');
+            const canvasEl = document.getElementById('canvas-att');
+            
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(stream => {
+                currentStream = stream;
+                videoEl.srcObject = stream;
+                
+                videoEl.addEventListener('play', () => {
+                    const displaySize = { width: videoEl.offsetWidth, height: videoEl.offsetHeight };
+                    faceapi.matchDimensions(canvasEl, displaySize);
+                    
+                    detectInterval = setInterval(async () => {
+                        if(!faceMatcher) return;
+                        const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+                        const resized = faceapi.resizeResults(detections, displaySize);
+                        
+                        const ctx = canvasEl.getContext('2d');
+                        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+                        if (resized.length > 0) {
+                            const match = faceMatcher.findBestMatch(resized[0].descriptor);
+                            // 1:1 Verification Match
+                            if (match.label.toLowerCase() === targetUser.toLowerCase()) {
+                                clearInterval(detectInterval);
+                                stopCamera();
+                                processAttendance();
+                            } else {
+                                new faceapi.draw.DrawBox(resized[0].detection.box, { label: "Wrong Face", boxColor: 'red' }).draw(canvasEl);
+                            }
+                        }
+                    }, 500);
+                }, { once: true });
+            });
+        }
+
+        async function processAttendance() {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            if (scanType === 'IN') {
+                // Create New Record
+                await db.collection('attendance').add({
+                    name: targetUser,
+                    dateStr: todayStr,
+                    checkIn: firebase.firestore.Timestamp.fromDate(now),
+                    checkOut: null
+                });
+                showToast(`Checked IN: ${targetUser}`);
+            } else {
+                // Update Existing Record (Check Out)
+                const docId = document.getElementById('btn-out').dataset.docId;
+                await db.collection('attendance').doc(docId).update({
+                    checkOut: firebase.firestore.Timestamp.fromDate(now)
+                });
+                showToast(`Checked OUT: ${targetUser}`);
+            }
+
+            // Reset UI
+            setTimeout(() => {
+                document.getElementById('att-name').value = "";
+                document.getElementById('status-display').style.display = 'none';
+                document.getElementById('action-buttons').style.display = 'none';
+            }, 2000);
         }
 
         function stopCamera() {
             if(currentStream) currentStream.getTracks().forEach(t => t.stop());
             if(detectInterval) clearInterval(detectInterval);
-            const ctx = els.canvas.getContext('2d');
-            ctx.clearRect(0,0,els.canvas.width, els.canvas.height);
+            document.querySelectorAll('.cam-box').forEach(e => e.classList.remove('active'));
+            document.getElementById('btn-cancel').style.display = 'none';
         }
 
-        function startKioskMode() {
-            startCamera(els.videoKiosk);
-            els.videoKiosk.addEventListener('play', () => {
-                const displaySize = { width: els.videoKiosk.offsetWidth, height: els.videoKiosk.offsetHeight };
-                faceapi.matchDimensions(els.canvas, displaySize);
+        // --- REGISTRATION ---
+        function openRegCam() {
+            document.getElementById('reg-cam').classList.add('active');
+            document.getElementById('btn-capture').style.display = 'block';
+            const vid = document.getElementById('video-reg');
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(s => { currentStream = s; vid.srcObject = s; });
+        }
 
-                detectInterval = setInterval(async () => {
-                    if(!faceMatcher) return;
-                    
-                    // Use TinyFaceDetector for mobile (faster)
-                    const detections = await faceapi.detectAllFaces(els.videoKiosk, new faceapi.TinyFaceDetectorOptions())
-                        .withFaceLandmarks()
-                        .withFaceDescriptors();
-                        
-                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                    const ctx = els.canvas.getContext('2d');
-                    ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+        async function captureFace() {
+            const name = document.getElementById('reg-name').value.trim();
+            if(!name) return showToast("Enter Name");
+            
+            const vid = document.getElementById('video-reg');
+            const detection = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+            
+            if(detection) {
+                await db.collection('employees').add({
+                    name: name,
+                    descriptor: Array.from(detection.descriptor)
+                });
+                showToast("Registered!");
+                stopCamera();
+                loadFaceDB();
+            } else {
+                showToast("No face detected");
+            }
+        }
 
-                    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+        // --- ADMIN MANUAL ENTRY ---
+        async function manualEntry() {
+            const name = document.getElementById('man-name').value;
+            const date = document.getElementById('man-date').value;
+            const tIn = document.getElementById('man-in').value; // HH:mm
+            const tOut = document.getElementById('man-out').value; // HH:mm
 
-                    results.forEach((result, i) => {
-                        const box = resizedDetections[i].detection.box;
-                        const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString(), boxColor: '#3B82F6' });
-                        drawBox.draw(els.canvas);
-                        if(result.label !== 'unknown') logAttendance(result.label);
+            if(!name || !date || !tIn) return showToast("Fill all fields");
+
+            // Convert string times to Firestore Timestamps
+            const dIn = new Date(`${date}T${tIn}`);
+            const dOut = tOut ? new Date(`${date}T${tOut}`) : null;
+
+            await db.collection('attendance').add({
+                name: name,
+                dateStr: date,
+                checkIn: firebase.firestore.Timestamp.fromDate(dIn),
+                checkOut: dOut ? firebase.firestore.Timestamp.fromDate(dOut) : null
+            });
+            showToast("Record Added Manually");
+        }
+
+        // --- REPORT GENERATION (PDF/EXCEL) ---
+        async function generateReport(type) {
+            const monthVal = document.getElementById('report-month').value; // yyyy-mm
+            if(!monthVal) return showToast("Select Month");
+
+            showToast("Generating Report...");
+
+            // Query Data for that Month
+            // Using string comparison for dateStr "YYYY-MM-..."
+            const snapshot = await db.collection('attendance')
+                .where('dateStr', '>=', `${monthVal}-01`)
+                .where('dateStr', '<=', `${monthVal}-31`)
+                .get();
+
+            if(snapshot.empty) return showToast("No Data Found");
+
+            // Process Data
+            let reportData = {}; // { "John": { days: 5, hours: 20, logs: [] } }
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if(!reportData[d.name]) reportData[d.name] = { days: 0, hours: 0, details: [] };
+                
+                // Calculate Hours
+                let hours = 0;
+                let outTimeStr = "Active";
+                if(d.checkIn && d.checkOut) {
+                    const diffMs = d.checkOut.toDate() - d.checkIn.toDate();
+                    hours = diffMs / (1000 * 60 * 60); // Convert ms to hours
+                    outTimeStr = d.checkOut.toDate().toLocaleTimeString();
+                }
+
+                reportData[d.name].days += 1;
+                reportData[d.name].hours += hours;
+                
+                reportData[d.name].details.push({
+                    date: d.dateStr,
+                    in: d.checkIn.toDate().toLocaleTimeString(),
+                    out: outTimeStr,
+                    duration: hours.toFixed(2)
+                });
+            });
+
+            // Convert to Array for Export
+            let finalRows = [];
+            for (let [name, data] of Object.entries(reportData)) {
+                // Summary Row
+                finalRows.push({
+                    Name: name,
+                    Date: "TOTAL",
+                    Check_In: "-",
+                    Check_Out: "-",
+                    Hours_Worked: data.hours.toFixed(2),
+                    Total_Days: data.days
+                });
+                // Detail Rows
+                data.details.forEach(log => {
+                    finalRows.push({
+                        Name: "",
+                        Date: log.date,
+                        Check_In: log.in,
+                        Check_Out: log.out,
+                        Hours_Worked: log.duration,
+                        Total_Days: ""
                     });
-                }, 500); // 500ms for mobile battery saving
-            }, { once: true });
+                });
+                finalRows.push({}); // Spacer
+            }
+
+            // EXPORT EXCEL
+            if(type === 'excel') {
+                const ws = XLSX.utils.json_to_sheet(finalRows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+                XLSX.writeFile(wb, `Attendance_${monthVal}.xlsx`);
+            } 
+            // EXPORT PDF
+            else {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                doc.text(`Attendance Report: ${monthVal}`, 14, 15);
+                
+                let tableBody = finalRows.map(r => Object.values(r));
+                
+                doc.autoTable({
+                    head: [['Name', 'Date', 'In', 'Out', 'Hours', 'Days']],
+                    body: tableBody,
+                    startY: 20,
+                });
+                doc.save(`Attendance_${monthVal}.pdf`);
+            }
+            showToast("Download Started");
         }
 
+        // --- UTILS ---
         async function loadFaceDB() {
             const snap = await db.collection('employees').get();
             labeledFaceDescriptors = [];
             snap.forEach(doc => {
-                const data = doc.data();
-                labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(data.name, [new Float32Array(data.descriptor)]));
-            });
-            if(labeledFaceDescriptors.length > 0) faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
-        }
-
-        let lastLog = {};
-        function logAttendance(name) {
-            const now = new Date();
-            if(lastLog[name] && (now - lastLog[name] < 3600000)) return;
-            lastLog[name] = now;
-            todayCount++;
-
-            db.collection('attendance').add({ name, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            showToast(`Checked in: ${name}`, "success");
-            
-            const div = document.createElement('div');
-            div.className = 'log-item';
-            div.innerHTML = `<div class="log-avatar">${name[0]}</div><div><div style="font-weight:600">${name}</div><div style="font-size:0.8rem; color:#94A3B8">${now.toLocaleTimeString()}</div></div>`;
-            const feed = document.getElementById('log-feed');
-            if(feed.innerText.includes("No activity")) feed.innerHTML = '';
-            feed.prepend(div);
-        }
-
-        async function registerUser() {
-            const name = document.getElementById('reg-name').value.trim();
-            if(!name) return showToast("Enter Name", "error");
-            
-            const chk = await db.collection('employees').where('name','==',name).get();
-            if(!chk.empty) return showToast("Name Taken", "error");
-
-            const detection = await faceapi.detectSingleFace(els.videoReg, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-            if(detection) {
-                await db.collection('employees').add({ name, descriptor: Array.from(detection.descriptor), regDate: firebase.firestore.FieldValue.serverTimestamp() });
-                showToast("Registered!", "success");
-                document.getElementById('reg-name').value = '';
-                loadFaceDB();
-            } else {
-                showToast("No Face Detected", "error");
-            }
-        }
-
-        async function loadAdminData() {
-            const snap = await db.collection('employees').get();
-            document.getElementById('stat-total').innerText = snap.size;
-            document.getElementById('stat-today').innerText = todayCount;
-            const tb = document.getElementById('table-body');
-            tb.innerHTML = '';
-            snap.forEach(doc => {
                 const d = doc.data();
-                tb.innerHTML += `<tr><td>${d.name}</td><td>${d.regDate ? new Date(d.regDate.seconds*1000).toLocaleDateString() : '-'}</td><td><button onclick="delUser('${doc.id}')" style="color:red; background:none; border:none; font-weight:bold;">DEL</button></td></tr>`;
+                labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(d.name, [new Float32Array(d.descriptor)]));
             });
+            if(labeledFaceDescriptors.length) faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
         }
 
-        async function delUser(id) {
-            if(confirm("Delete user?")) {
-                await db.collection('employees').doc(id).delete();
-                loadAdminData(); loadFaceDB();
-            }
-        }
-
-        function showToast(msg, type) {
+        function showToast(msg) {
             const t = document.getElementById('toast');
-            document.getElementById('t-msg').innerText = msg;
-            document.getElementById('t-icon').innerText = type==='error'?'error':'check_circle';
-            t.classList.add('visible');
+            t.innerText = msg; t.classList.add('visible');
             setTimeout(()=>t.classList.remove('visible'), 3000);
         }
     </script>
