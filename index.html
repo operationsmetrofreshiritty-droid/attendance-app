@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus | Enterprise Attendance</title>
+    <title>Nexus | Verification System</title>
     
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
     <!-- Libraries -->
-    <!-- AI & DB -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
-    <!-- Reporting (Excel & PDF) -->
+    <!-- Reporting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
@@ -23,7 +22,6 @@
     <style>
         :root {
             --primary: #2563EB;
-            --secondary: #475569;
             --bg: #F8FAFC;
             --surface: #FFFFFF;
             --text: #1E293B;
@@ -42,22 +40,23 @@
 
         /* MAIN */
         main { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
-        .page-view { display: none; animation: fadeIn 0.3s; max-width: 800px; margin: 0 auto; }
+        .page-view { display: none; animation: fadeIn 0.3s; max-width: 600px; margin: 0 auto; }
         .page-view.active { display: block; }
 
         h1 { font-size: 1.6rem; margin: 0 0 5px 0; }
         p.subtitle { color: #64748B; margin-bottom: 25px; }
 
         /* CARDS */
-        .card { background: var(--surface); padding: 25px; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { background: var(--surface); padding: 25px; border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
         /* INPUTS & BUTTONS */
         .input-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748B; margin-bottom: 5px; }
-        .styled-input { width: 100%; padding: 12px; border: 2px solid #E2E8F0; border-radius: 8px; font-size: 1rem; transition: 0.3s; }
+        .styled-input { width: 100%; padding: 14px; border: 2px solid #E2E8F0; border-radius: 10px; font-size: 1rem; transition: 0.3s; }
         .styled-input:focus { border-color: var(--primary); }
 
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); }
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
@@ -65,16 +64,22 @@
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* CAMERA */
-        .cam-box { background: #000; border-radius: var(--radius); overflow: hidden; position: relative; aspect-ratio: 4/3; margin-bottom: 15px; display: none; }
+        .cam-box { background: #000; border-radius: var(--radius); overflow: hidden; position: relative; aspect-ratio: 4/3; margin-bottom: 15px; display: none; border: 4px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .cam-box.active { display: block; }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; inset: 0; }
 
-        /* STATUS BADGES */
-        .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .st-in { background: #DCFCE7; color: #166534; }
-        .st-out { background: #FEE2E2; color: #991B1B; }
+        /* STATUS DISPLAY */
+        #status-card { display: none; margin-top: 15px; padding: 15px; background: #F1F5F9; border-radius: 10px; text-align: center; }
+        .status-text { font-size: 1.1rem; font-weight: 700; display: block; margin-bottom: 10px; }
 
+        /* SUCCESS MODAL */
+        .success-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .success-overlay.visible { opacity: 1; pointer-events: all; }
+        .success-card { text-align: center; transform: scale(0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .success-overlay.visible .success-card { transform: scale(1); }
+        .checkmark-circle { width: 80px; height: 80px; background: #DCFCE7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #166534; }
+        
         /* ADMIN TABS */
         .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
         .tab-btn { background: none; border: none; padding: 10px 20px; font-weight: 600; color: #64748B; cursor: pointer; border-radius: 6px; }
@@ -92,8 +97,7 @@
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        #toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -100px); background: #1E293B; color: white; padding: 12px 24px; border-radius: 30px; transition: 0.4s; z-index: 2000; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -100px); background: #1E293B; color: white; padding: 12px 24px; border-radius: 30px; transition: 0.4s; z-index: 3000; }
         #toast.visible { transform: translate(-50%, 0); }
     </style>
 </head>
@@ -109,24 +113,29 @@
         <!-- VIEW 1: ATTENDANCE -->
         <div id="view-home" class="page-view active">
             <h1>Staff Access</h1>
-            <p class="subtitle">Check-In / Check-Out Verification</p>
+            <p class="subtitle">Enter name to verify and log time.</p>
 
             <div class="card">
                 <div class="input-group">
-                    <label>YOUR NAME</label>
-                    <input type="text" id="att-name" class="styled-input" placeholder="Enter name..." onchange="checkUserStatus()">
+                    <label>FULL NAME</label>
+                    <input type="text" id="att-name" class="styled-input" placeholder="Enter name...">
                 </div>
                 
-                <div id="status-display" style="margin-bottom:15px; display:none; padding:10px; background:#F1F5F9; border-radius:8px; text-align:center;">
-                    Current Status: <span id="current-status" style="font-weight:bold">...</span>
-                </div>
+                <!-- 1. Check Button -->
+                <button class="btn btn-primary" id="btn-check-status" onclick="checkUserStatus()">
+                    Check Status
+                </button>
 
-                <div id="action-buttons" style="display:none;">
-                    <button class="btn btn-success" id="btn-in" onclick="startCamera('IN')">
-                        <span class="material-icons-round">login</span> CHECK IN
+                <!-- 2. Status Display (Hidden Initially) -->
+                <div id="status-card">
+                    <span id="current-status" class="status-text">...</span>
+                    
+                    <button class="btn btn-success" id="btn-in" onclick="startCamera('IN')" style="display:none; margin-top:10px;">
+                        <span class="material-icons-round">login</span> CLOCK IN
                     </button>
-                    <button class="btn btn-danger" id="btn-out" onclick="startCamera('OUT')" style="margin-top:10px; display:none;">
-                        <span class="material-icons-round">logout</span> CHECK OUT
+                    
+                    <button class="btn btn-danger" id="btn-out" onclick="startCamera('OUT')" style="display:none; margin-top:10px;">
+                        <span class="material-icons-round">logout</span> CLOCK OUT
                     </button>
                 </div>
             </div>
@@ -142,7 +151,7 @@
         <!-- VIEW 2: REGISTER -->
         <div id="view-register" class="page-view">
             <h1>Registration</h1>
-            <p class="subtitle">Add new employee face data.</p>
+            <p class="subtitle">Add new employee to database.</p>
             
             <div class="card">
                 <div class="input-group">
@@ -169,24 +178,12 @@
             <!-- Tab 1: Manual Entry -->
             <div id="tab-manual" class="admin-section active">
                 <div class="card">
-                    <h3>Manual Attendance Correction</h3>
-                    <div class="input-group">
-                        <label>Employee Name</label>
-                        <input type="text" id="man-name" class="styled-input">
-                    </div>
-                    <div class="input-group">
-                        <label>Date</label>
-                        <input type="date" id="man-date" class="styled-input">
-                    </div>
+                    <h3>Manual Attendance</h3>
+                    <div class="input-group"><label>Name</label><input type="text" id="man-name" class="styled-input"></div>
+                    <div class="input-group"><label>Date</label><input type="date" id="man-date" class="styled-input"></div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <div class="input-group">
-                            <label>In Time</label>
-                            <input type="time" id="man-in" class="styled-input">
-                        </div>
-                        <div class="input-group">
-                            <label>Out Time</label>
-                            <input type="time" id="man-out" class="styled-input">
-                        </div>
+                        <div class="input-group"><label>In</label><input type="time" id="man-in" class="styled-input"></div>
+                        <div class="input-group"><label>Out</label><input type="time" id="man-out" class="styled-input"></div>
                     </div>
                     <button class="btn btn-dark" onclick="manualEntry()">Save Record</button>
                 </div>
@@ -195,32 +192,33 @@
             <!-- Tab 2: Reports -->
             <div id="tab-reports" class="admin-section">
                 <div class="card">
-                    <h3>Generate Monthly Report</h3>
-                    <div class="input-group">
-                        <label>Select Month</label>
-                        <input type="month" id="report-month" class="styled-input">
-                    </div>
+                    <h3>Monthly Report</h3>
+                    <div class="input-group"><label>Select Month</label><input type="month" id="report-month" class="styled-input"></div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <button class="btn btn-success" onclick="generateReport('excel')">
-                            <span class="material-icons-round">table_view</span> Excel
-                        </button>
-                        <button class="btn btn-danger" onclick="generateReport('pdf')">
-                            <span class="material-icons-round">picture_as_pdf</span> PDF
-                        </button>
+                        <button class="btn btn-success" onclick="generateReport('excel')">Excel</button>
+                        <button class="btn btn-danger" onclick="generateReport('pdf')">PDF</button>
                     </div>
-                </div>
-                <div style="margin-top:20px; font-size:0.9rem; color:#64748B;">
-                    * Report includes: Total Days Present, Total Hours Worked, and individual timestamps.
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- SUCCESS POPUP OVERLAY -->
+    <div class="success-overlay" id="success-modal">
+        <div class="success-card">
+            <div class="checkmark-circle">
+                <span class="material-icons-round" style="font-size: 48px;">check</span>
+            </div>
+            <h2 id="success-title" style="margin:0; font-size:1.5rem;">Success!</h2>
+            <p id="success-desc" style="color:#64748B; margin-top:5px;">Operation completed.</p>
+        </div>
+    </div>
+
     <div id="toast">Message</div>
 
     <script>
         // --- 1. FIREBASE CONFIG ---
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyC51fLDt-4UwSm8y6fwwIyah6JprTskAbI",
   authDomain: "metroirittyattendance.firebaseapp.com",
   projectId: "metroirittyattendance",
@@ -236,11 +234,11 @@
         // GLOBALS
         let currentStream, faceMatcher, detectInterval;
         let labeledFaceDescriptors = [];
-        let scanType = 'IN'; // 'IN' or 'OUT'
+        let scanType = 'IN'; 
         let targetUser = '';
 
         window.onload = async () => {
-            showToast("Loading System...");
+            showToast("Loading AI...");
             const URL = 'https://justadudewhohacks.github.io/face-api.js/models';
             await Promise.all([
                 faceapi.nets.tinyFaceDetector.loadFromUri(URL),
@@ -249,14 +247,14 @@
                 faceapi.nets.ssdMobilenetv1.loadFromUri(URL)
             ]);
             await loadFaceDB();
-            // Set default date for manual entry
             document.getElementById('man-date').valueAsDate = new Date();
-            showToast("System Ready");
+            showToast("System Online");
         };
 
         // --- NAVIGATION ---
         function navTo(view, el) {
             stopCamera();
+            resetHomeUI(); // Reset status checks when moving away
             document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
             document.getElementById('view-' + view).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
@@ -270,47 +268,48 @@
             event.target.classList.add('active');
         }
 
-        // --- ATTENDANCE LOGIC (CHECK IN/OUT) ---
+        // --- ATTENDANCE FLOW ---
         async function checkUserStatus() {
             const name = document.getElementById('att-name').value.trim();
-            if(!name) return;
+            if(!name) return showToast("Please enter a name");
 
-            // Find if user exists
+            // 1. Check if registered locally
             const exists = labeledFaceDescriptors.some(lb => lb.label.toLowerCase() === name.toLowerCase());
-            if(!exists) return showToast("User not registered");
+            if(!exists) return showToast("User not registered in system");
 
-            // Check today's status
-            const todayStr = new Date().toISOString().split('T')[0];
+            showToast("Checking Database...");
             
-            // Query: Find logs for this user today where checkOut is missing
+            // 2. Check Database for Status
+            const todayStr = new Date().toISOString().split('T')[0];
             const snapshot = await db.collection('attendance')
                 .where('name', '==', name)
                 .where('dateStr', '==', todayStr)
                 .where('checkOut', '==', null)
                 .get();
 
-            const statusDisplay = document.getElementById('status-display');
+            // UI Elements
+            const btnCheck = document.getElementById('btn-check-status');
+            const statusCard = document.getElementById('status-card');
             const statusText = document.getElementById('current-status');
-            const btnBox = document.getElementById('action-buttons');
             const btnIn = document.getElementById('btn-in');
             const btnOut = document.getElementById('btn-out');
 
-            statusDisplay.style.display = 'block';
-            btnBox.style.display = 'block';
+            // Hide Check Button, Show Status Card
+            btnCheck.style.display = 'none';
+            statusCard.style.display = 'block';
 
             if (!snapshot.empty) {
-                // User is currently IN, needs to Check OUT
-                statusText.innerText = "CLOCKED IN";
+                // User is IN
+                statusText.innerText = `Hi ${name}, you are Clocked IN.`;
                 statusText.style.color = "green";
                 btnIn.style.display = 'none';
-                btnOut.style.display = 'flex';
-                // Store doc ID to update later
+                btnOut.style.display = 'block';
                 btnOut.dataset.docId = snapshot.docs[0].id;
             } else {
-                // User is OUT, needs to Check IN
-                statusText.innerText = "NOT IN";
-                statusText.style.color = "red";
-                btnIn.style.display = 'flex';
+                // User is OUT
+                statusText.innerText = `Hi ${name}, you are NOT Clocked In.`;
+                statusText.style.color = "#64748B";
+                btnIn.style.display = 'block';
                 btnOut.style.display = 'none';
             }
         }
@@ -318,9 +317,11 @@
         async function startCamera(type) {
             scanType = type;
             targetUser = document.getElementById('att-name').value.trim();
+            
+            // UI Update
+            document.getElementById('status-card').style.display = 'none';
             document.getElementById('att-cam').classList.add('active');
             document.getElementById('btn-cancel').style.display = 'block';
-            document.getElementById('action-buttons').style.display = 'none'; // Hide buttons while scanning
 
             const videoEl = document.getElementById('video-att');
             const canvasEl = document.getElementById('canvas-att');
@@ -337,13 +338,12 @@
                         if(!faceMatcher) return;
                         const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
                         const resized = faceapi.resizeResults(detections, displaySize);
-                        
                         const ctx = canvasEl.getContext('2d');
                         ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
                         if (resized.length > 0) {
                             const match = faceMatcher.findBestMatch(resized[0].descriptor);
-                            // 1:1 Verification Match
+                            // 1:1 Match
                             if (match.label.toLowerCase() === targetUser.toLowerCase()) {
                                 clearInterval(detectInterval);
                                 stopCamera();
@@ -360,37 +360,30 @@
         async function processAttendance() {
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
-            
+            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
             if (scanType === 'IN') {
-                // Create New Record
                 await db.collection('attendance').add({
                     name: targetUser,
                     dateStr: todayStr,
                     checkIn: firebase.firestore.Timestamp.fromDate(now),
                     checkOut: null
                 });
-                showToast(`Checked IN: ${targetUser}`);
+                showSuccess("Clocked In!", `Time: ${timeStr}`);
             } else {
-                // Update Existing Record (Check Out)
                 const docId = document.getElementById('btn-out').dataset.docId;
                 await db.collection('attendance').doc(docId).update({
                     checkOut: firebase.firestore.Timestamp.fromDate(now)
                 });
-                showToast(`Checked OUT: ${targetUser}`);
+                showSuccess("Clocked Out!", `Time: ${timeStr}`);
             }
-
-            // Reset UI
-            setTimeout(() => {
-                document.getElementById('att-name').value = "";
-                document.getElementById('status-display').style.display = 'none';
-                document.getElementById('action-buttons').style.display = 'none';
-            }, 2000);
         }
 
-        function stopCamera() {
-            if(currentStream) currentStream.getTracks().forEach(t => t.stop());
-            if(detectInterval) clearInterval(detectInterval);
-            document.querySelectorAll('.cam-box').forEach(e => e.classList.remove('active'));
+        function resetHomeUI() {
+            document.getElementById('att-name').value = "";
+            document.getElementById('btn-check-status').style.display = 'block';
+            document.getElementById('status-card').style.display = 'none';
+            document.getElementById('att-cam').classList.remove('active');
             document.getElementById('btn-cancel').style.display = 'none';
         }
 
@@ -414,45 +407,63 @@
                     name: name,
                     descriptor: Array.from(detection.descriptor)
                 });
-                showToast("Registered!");
                 stopCamera();
                 loadFaceDB();
+                document.getElementById('reg-name').value = "";
+                document.getElementById('btn-capture').style.display = 'none';
+                showSuccess("Registered!", `${name} added to system`);
             } else {
                 showToast("No face detected");
             }
         }
 
-        // --- ADMIN MANUAL ENTRY ---
+        // --- SUCCESS MODAL LOGIC ---
+        function showSuccess(title, desc) {
+            const modal = document.getElementById('success-modal');
+            document.getElementById('success-title').innerText = title;
+            document.getElementById('success-desc').innerText = desc;
+            
+            modal.classList.add('visible');
+            
+            // Auto hide and reset UI after 2 seconds
+            setTimeout(() => {
+                modal.classList.remove('visible');
+                resetHomeUI(); // Reset main screen for next person
+            }, 2500);
+        }
+
+        function stopCamera() {
+            if(currentStream) currentStream.getTracks().forEach(t => t.stop());
+            if(detectInterval) clearInterval(detectInterval);
+            document.querySelectorAll('.cam-box').forEach(e => e.classList.remove('active'));
+            document.getElementById('btn-cancel').style.display = 'none';
+        }
+
+        // --- ADMIN & REPORTS ---
         async function manualEntry() {
             const name = document.getElementById('man-name').value;
             const date = document.getElementById('man-date').value;
-            const tIn = document.getElementById('man-in').value; // HH:mm
-            const tOut = document.getElementById('man-out').value; // HH:mm
+            const tIn = document.getElementById('man-in').value;
+            const tOut = document.getElementById('man-out').value;
 
             if(!name || !date || !tIn) return showToast("Fill all fields");
 
-            // Convert string times to Firestore Timestamps
             const dIn = new Date(`${date}T${tIn}`);
             const dOut = tOut ? new Date(`${date}T${tOut}`) : null;
 
             await db.collection('attendance').add({
-                name: name,
-                dateStr: date,
+                name: name, dateStr: date,
                 checkIn: firebase.firestore.Timestamp.fromDate(dIn),
                 checkOut: dOut ? firebase.firestore.Timestamp.fromDate(dOut) : null
             });
-            showToast("Record Added Manually");
+            showSuccess("Record Added", "Manual entry saved.");
         }
 
-        // --- REPORT GENERATION (PDF/EXCEL) ---
         async function generateReport(type) {
-            const monthVal = document.getElementById('report-month').value; // yyyy-mm
+            const monthVal = document.getElementById('report-month').value;
             if(!monthVal) return showToast("Select Month");
-
             showToast("Generating Report...");
 
-            // Query Data for that Month
-            // Using string comparison for dateStr "YYYY-MM-..."
             const snapshot = await db.collection('attendance')
                 .where('dateStr', '>=', `${monthVal}-01`)
                 .where('dateStr', '<=', `${monthVal}-31`)
@@ -460,86 +471,48 @@
 
             if(snapshot.empty) return showToast("No Data Found");
 
-            // Process Data
-            let reportData = {}; // { "John": { days: 5, hours: 20, logs: [] } }
-
+            let reportData = {};
             snapshot.forEach(doc => {
                 const d = doc.data();
                 if(!reportData[d.name]) reportData[d.name] = { days: 0, hours: 0, details: [] };
                 
-                // Calculate Hours
                 let hours = 0;
                 let outTimeStr = "Active";
                 if(d.checkIn && d.checkOut) {
                     const diffMs = d.checkOut.toDate() - d.checkIn.toDate();
-                    hours = diffMs / (1000 * 60 * 60); // Convert ms to hours
+                    hours = diffMs / (1000 * 60 * 60);
                     outTimeStr = d.checkOut.toDate().toLocaleTimeString();
                 }
-
                 reportData[d.name].days += 1;
                 reportData[d.name].hours += hours;
-                
                 reportData[d.name].details.push({
-                    date: d.dateStr,
-                    in: d.checkIn.toDate().toLocaleTimeString(),
-                    out: outTimeStr,
-                    duration: hours.toFixed(2)
+                    date: d.dateStr, in: d.checkIn.toDate().toLocaleTimeString(),
+                    out: outTimeStr, duration: hours.toFixed(2)
                 });
             });
 
-            // Convert to Array for Export
             let finalRows = [];
             for (let [name, data] of Object.entries(reportData)) {
-                // Summary Row
-                finalRows.push({
-                    Name: name,
-                    Date: "TOTAL",
-                    Check_In: "-",
-                    Check_Out: "-",
-                    Hours_Worked: data.hours.toFixed(2),
-                    Total_Days: data.days
-                });
-                // Detail Rows
-                data.details.forEach(log => {
-                    finalRows.push({
-                        Name: "",
-                        Date: log.date,
-                        Check_In: log.in,
-                        Check_Out: log.out,
-                        Hours_Worked: log.duration,
-                        Total_Days: ""
-                    });
-                });
-                finalRows.push({}); // Spacer
+                finalRows.push({ Name: name, Date: "TOTAL", In: "-", Out: "-", Hours: data.hours.toFixed(2), Days: data.days });
+                data.details.forEach(log => finalRows.push({ Name: "", Date: log.date, In: log.in, Out: log.out, Hours: log.duration, Days: "" }));
+                finalRows.push({});
             }
 
-            // EXPORT EXCEL
             if(type === 'excel') {
                 const ws = XLSX.utils.json_to_sheet(finalRows);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-                XLSX.writeFile(wb, `Attendance_${monthVal}.xlsx`);
-            } 
-            // EXPORT PDF
-            else {
+                XLSX.writeFile(wb, `Report_${monthVal}.xlsx`);
+            } else {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                
-                doc.text(`Attendance Report: ${monthVal}`, 14, 15);
-                
-                let tableBody = finalRows.map(r => Object.values(r));
-                
-                doc.autoTable({
-                    head: [['Name', 'Date', 'In', 'Out', 'Hours', 'Days']],
-                    body: tableBody,
-                    startY: 20,
-                });
-                doc.save(`Attendance_${monthVal}.pdf`);
+                doc.text(`Report: ${monthVal}`, 14, 15);
+                doc.autoTable({ head: [['Name', 'Date', 'In', 'Out', 'Hours', 'Days']], body: finalRows.map(r => Object.values(r)), startY: 20 });
+                doc.save(`Report_${monthVal}.pdf`);
             }
-            showToast("Download Started");
+            showSuccess("Report Ready", "Download started.");
         }
 
-        // --- UTILS ---
         async function loadFaceDB() {
             const snap = await db.collection('employees').get();
             labeledFaceDescriptors = [];
