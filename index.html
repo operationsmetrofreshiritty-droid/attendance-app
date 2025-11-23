@@ -44,12 +44,10 @@
         /* --- LAYOUTS --- */
         main { flex: 1; overflow-y: auto; padding: 24px; padding-bottom: 100px; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
         
-        /* Views */
         .page-view { display: none; animation: slideUp 0.3s ease; }
         .page-view.active { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Typography */
         h1 { font-size: 1.5rem; font-weight: 700; margin: 0; letter-spacing: -0.025em; }
         .subtitle { color: var(--text-sub); font-size: 0.9rem; margin-top: 4px; }
         .header { text-align: center; margin: 20px 0 32px; }
@@ -81,45 +79,47 @@
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; inset: 0; }
 
-        /* --- ADMIN FULL SCREEN UI (MODERNIZED) --- */
+        /* --- ADMIN FULL SCREEN UI (CENTERED HEADER) --- */
         #view-admin { position: fixed; inset: 0; background: var(--bg); z-index: 100; padding: 20px; overflow-y: auto; display: none; }
         #view-admin.active { display: block; }
 
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .close-btn { background: #E2E8F0; color: var(--text-main); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        /* Centered Header with Absolute Close Button */
+        .admin-header { position: relative; text-align: center; margin-bottom: 25px; padding-top: 10px; }
+        .admin-header h1 { font-size: 1.4rem; margin: 0; }
+        .admin-header .subtitle { margin: 0; font-size: 0.85rem; }
+        .close-btn { position: absolute; top: 5px; right: 0; background: #E2E8F0; color: var(--text-main); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         
-        /* Segmented Control Nav */
         .admin-nav { display: flex; background: #E2E8F0; padding: 4px; border-radius: 12px; margin-bottom: 24px; overflow-x: auto; }
         .seg-item { flex: 1; text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-sub); border-radius: 9px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
         .seg-item.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* Admin Dashboard Cards */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
         .stat-card { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
         .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         .icon-blue { background: #EEF2FF; color: var(--primary); }
         .icon-green { background: #DCFCE7; color: var(--success); }
         .stat-val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); line-height: 1; }
-        .stat-lbl { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; }
 
-        /* Employee List Items */
+        /* Employee List */
         .emp-list { display: flex; flex-direction: column; gap: 12px; }
-        .emp-item { display: flex; align-items: center; justify-content: space-between; background: white; padding: 16px; border-radius: 16px; border: 1px solid var(--border); transition: transform 0.1s; }
-        .emp-item:active { transform: scale(0.98); }
+        .emp-item { display: flex; align-items: center; justify-content: space-between; background: white; padding: 16px; border-radius: 16px; border: 1px solid var(--border); }
         .emp-left { display: flex; align-items: center; gap: 16px; }
-        .avatar { width: 42px; height: 42px; background: linear-gradient(135deg, #4F46E5, #818CF8); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
-        .emp-name { font-weight: 600; color: var(--text-main); font-size: 0.95rem; }
-        .emp-date { font-size: 0.75rem; color: var(--text-sub); }
+        .avatar { width: 42px; height: 42px; background: linear-gradient(135deg, #4F46E5, #818CF8); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
         .del-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background: #FEF2F2; color: var(--danger); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
         /* AUTH MODAL */
         .auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
         .auth-overlay.visible { opacity: 1; pointer-events: all; }
-        .auth-card { background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); transform: scale(0.9); transition: 0.3s; }
-        .auth-overlay.visible .auth-card { transform: scale(1); }
+        .auth-card { background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+
+        /* SUCCESS MODAL (RESTORED) */
+        .success-modal { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 2100; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .success-modal.visible { opacity: 1; pointer-events: all; }
+        .checkmark { width: 80px; height: 80px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 24px; transform: scale(0); transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .success-modal.visible .checkmark { transform: scale(1); }
 
         /* TOAST */
-        #toast { position: fixed; top: 24px; left: 50%; transform: translate(-50%, -100px); background: #0F172A; color: white; padding: 12px 24px; border-radius: 100px; z-index: 3000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 10px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        #toast { position: fixed; top: 24px; left: 50%; transform: translate(-50%, -100px); background: #0F172A; color: white; padding: 12px 24px; border-radius: 100px; z-index: 3000; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         #toast.visible { transform: translate(-50%, 0); }
     </style>
 </head>
@@ -159,10 +159,8 @@
     <!-- ADMIN FULL SCREEN CONSOLE -->
     <div id="view-admin">
         <div class="admin-header">
-            <div>
-                <h1 style="font-size:1.5rem">Admin Console</h1>
-                <p class="subtitle" style="margin:0">Manager Access</p>
-            </div>
+            <h1 style="font-size:1.4rem">Admin Console</h1>
+            <p class="subtitle" style="margin:0">Manager Access</p>
             <button class="close-btn" onclick="exitAdmin()"><span class="material-icons-round">close</span></button>
         </div>
 
@@ -198,9 +196,7 @@
 
         <!-- 2. MANAGE STAFF -->
         <div id="sub-staff" class="admin-subview" style="display:none;">
-            <div class="emp-list" id="emp-list-container">
-                <!-- JS Populated -->
-            </div>
+            <div class="emp-list" id="emp-list-container"></div>
         </div>
 
         <!-- 3. MANUAL ENTRY -->
@@ -227,11 +223,9 @@
                         <option value="employee">Employee Detail</option>
                     </select>
                 </div>
-                
                 <div class="input-group" id="box-month"><label>Select Month</label><input type="month" id="rep-month" class="styled-input"></div>
                 <div class="input-group" id="box-date" style="display:none"><label>Select Date</label><input type="date" id="rep-date" class="styled-input"></div>
                 <div class="input-group" id="box-name" style="display:none"><label>Employee Name</label><input type="text" id="rep-name" class="styled-input" placeholder="Exact Name"></div>
-
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px;">
                     <button class="btn btn-success" onclick="genReport('excel')">Excel</button>
                     <button class="btn btn-danger" onclick="genReport('pdf')">PDF</button>
@@ -253,9 +247,7 @@
             <span class="material-icons-round" style="font-size:48px; color:var(--primary); margin-bottom:16px;">lock_person</span>
             <h2 style="margin:0 0 8px 0; font-size:1.4rem;">Admin Access</h2>
             <p style="color:var(--text-sub); font-size:0.9rem; margin:0 0 24px 0;">Enter security PIN to continue</p>
-            
             <input type="password" id="admin-pass" class="styled-input" style="text-align:center; letter-spacing:6px; font-size:1.2rem; margin-bottom:24px;" placeholder="••••" maxlength="10">
-            
             <div style="display:flex; gap:12px;">
                 <button class="btn btn-ghost" onclick="closeAuth()">Cancel</button>
                 <button class="btn btn-primary" onclick="verifyAdmin()">Unlock</button>
@@ -263,7 +255,16 @@
         </div>
     </div>
 
-    <div id="toast"><span class="material-icons-round">info</span><span id="toast-msg">Message</span></div>
+    <!-- SUCCESS MODAL -->
+    <div class="success-modal" id="success-modal">
+        <div class="checkmark">
+            <span class="material-icons-round" style="font-size: 48px;">check</span>
+        </div>
+        <h2 id="success-title" style="margin: 0; font-size: 1.5rem; color: var(--text-main);">Success</h2>
+        <p id="success-desc" style="color: var(--text-sub); margin-top: 8px;">Action Completed</p>
+    </div>
+
+    <div id="toast"><span id="toast-msg">Message</span></div>
 
     <script>
         // --- PASTE FIREBASE CONFIG HERE ---
@@ -357,14 +358,12 @@
             if(tab === 'staff') loadStaffList();
         }
 
-        // --- DASHBOARD LOGIC ---
+        // --- DASHBOARD ---
         async function loadDashboard() {
             const todayStr = new Date().toISOString().split('T')[0];
             const empSnap = await db.collection('employees').get();
             document.getElementById('stat-total').innerText = empSnap.size;
-            
             const attSnap = await db.collection('attendance').where('dateStr', '==', todayStr).get();
-            // Filter unique names for attendance count
             const unique = new Set();
             attSnap.forEach(doc => unique.add(doc.data().name));
             document.getElementById('stat-present').innerText = unique.size;
@@ -405,10 +404,11 @@
         async function deleteStaff(id, name) {
             if(confirm(`Permanently remove ${name}?`)) {
                 await db.collection('employees').doc(id).delete();
-                showToast("Staff Removed");
-                loadStaffList();
-                loadFaceDB();
-                loadDashboard();
+                // WAIT for deletion to complete before reloading
+                await loadStaffList(); 
+                await loadFaceDB();
+                await loadDashboard();
+                showSuccess("Deleted", `${name} removed`);
             }
         }
 
@@ -481,15 +481,16 @@
         async function processAttendance() {
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
+            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
             if(scanType==='IN') {
                 await db.collection('attendance').add({name:targetUser, dateStr:todayStr, checkIn: firebase.firestore.Timestamp.fromDate(now), checkOut:null});
-                showToast("Clocked IN");
+                showSuccess("Clocked IN", timeStr);
             } else {
                 const id = document.getElementById('btn-out').dataset.docId;
                 await db.collection('attendance').doc(id).update({checkOut: firebase.firestore.Timestamp.fromDate(now)});
-                showToast("Clocked OUT");
+                showSuccess("Clocked OUT", timeStr);
             }
-            setTimeout(resetHomeUI, 2000);
         }
 
         function resetHomeUI() {
@@ -519,7 +520,7 @@
                 document.getElementById('btn-capture').style.display='none'; 
                 document.getElementById('btn-open-reg').style.display='block';
                 document.getElementById('reg-cam').classList.remove('active');
-                showToast("Registered!");
+                showSuccess("Registered", name);
             } else { showToast("No face detected"); }
         }
 
@@ -530,7 +531,7 @@
             if(!n||!d||!inT) return showToast("Fill Data");
             const dIn = new Date(`${d}T${inT}`); const dOut = outT ? new Date(`${d}T${outT}`) : null;
             await db.collection('attendance').add({name:n, dateStr:d, checkIn:firebase.firestore.Timestamp.fromDate(dIn), checkOut:dOut?firebase.firestore.Timestamp.fromDate(dOut):null});
-            showToast("Saved Manual Entry");
+            showSuccess("Saved", "Record Added");
         }
 
         function toggleReportInputs() {
@@ -544,7 +545,6 @@
             const type = document.getElementById('report-type').value;
             let rows=[], name="Report";
             
-            // Logic reused from previous stable version but compacted for space
             if(type==='summary'){
                 const m = document.getElementById('rep-month').value;
                 if(!m) return showToast("Select Month");
@@ -587,7 +587,18 @@
             } else {
                 const doc=new jspdf.jsPDF(); doc.text(name,14,15); doc.autoTable({head:[rows[0]], body:rows.slice(1), startY:20}); doc.save(`${name}.pdf`);
             }
-            showToast("Report Exported");
+            showSuccess("Exported", "Download Started");
+        }
+
+        function showSuccess(title, msg) {
+            const m = document.getElementById('success-modal');
+            document.getElementById('success-title').innerText = title;
+            document.getElementById('success-desc').innerText = msg;
+            m.classList.add('visible');
+            setTimeout(() => {
+                m.classList.remove('visible');
+                resetHomeUI();
+            }, 2000);
         }
 
         function stopCamera(){ if(currentStream)currentStream.getTracks().forEach(t=>t.stop()); if(detectInterval)clearInterval(detectInterval); document.querySelectorAll('.cam-wrapper').forEach(e=>e.classList.remove('active')); document.getElementById('btn-cancel').style.display='none'; }
