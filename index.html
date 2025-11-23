@@ -36,7 +36,7 @@
             --border: #E2E8F0;
             --success: #10B981;
             --danger: #EF4444;
-            --nav-height: 70px; /* Height of bottom bar */
+            --nav-height: 70px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -57,17 +57,13 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            padding-bottom: calc(var(--nav-height) + 20px); /* Clear bottom nav */
-            max-width: 500px; /* Constrain width on desktops */
+            padding-bottom: calc(var(--nav-height) + 20px);
+            max-width: 500px;
             margin: 0 auto;
             width: 100%;
         }
 
-        .header {
-            margin-top: 20px;
-            margin-bottom: 25px;
-            text-align: center;
-        }
+        .header { margin-top: 20px; margin-bottom: 25px; text-align: center; }
         h1 { font-size: 1.6rem; font-weight: 700; margin: 0; color: var(--text-main); }
         p.subtitle { color: var(--text-sub); margin-top: 6px; font-size: 0.9rem; }
 
@@ -84,7 +80,7 @@
         .input-group { margin-bottom: 20px; }
         label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-sub); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
         
-        .styled-input {
+        .styled-input, select.styled-input {
             width: 100%; padding: 16px;
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -108,68 +104,40 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-dark { background: var(--text-main); color: white; }
 
-        /* --- NEW BOTTOM NAVIGATION BAR --- */
+        /* --- BOTTOM NAV --- */
         .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; width: 100%;
-            height: var(--nav-height);
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: var(--nav-height); background: white;
+            display: flex; justify-content: space-around; align-items: center;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
-            border-top: 1px solid var(--border);
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom); /* iPhone X Safe Area */
+            border-top: 1px solid var(--border); z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
         }
-
         .nav-item {
-            flex: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            color: #94A3B8;
-            cursor: pointer;
-            transition: 0.2s;
+            flex: 1; height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: transparent; border: none; color: #94A3B8;
+            cursor: pointer; transition: 0.2s;
         }
-
         .nav-item .material-icons-round { font-size: 26px; margin-bottom: 4px; }
         .nav-label { font-size: 0.7rem; font-weight: 600; }
-        
         .nav-item.active { color: var(--primary); }
-        .nav-item.active .material-icons-round { transform: translateY(-2px); }
 
-        /* --- SQUARE CAMERA UI --- */
+        /* --- CAMERA UI --- */
         .cam-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 350px; /* Prevent being too huge on desktop */
-            margin: 0 auto 20px auto;
-            background: black;
-            border-radius: 24px;
-            overflow: hidden;
+            position: relative; width: 100%; max-width: 350px;
+            margin: 0 auto 20px auto; background: black;
+            border-radius: 24px; overflow: hidden;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            aspect-ratio: 1 / 1; /* PERFECT SQUARE */
-            display: none;
-            border: 4px solid white;
+            aspect-ratio: 1 / 1; display: none; border: 4px solid white;
         }
         .cam-wrapper.active { display: block; animation: popIn 0.3s ease; }
-        
-        /* Guide frame inside camera */
         .scan-frame {
-            position: absolute;
-            top: 20px; left: 20px; right: 20px; bottom: 20px;
-            border: 2px dashed rgba(255,255,255,0.4);
-            border-radius: 16px;
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px;
+            border: 2px dashed rgba(255,255,255,0.4); border-radius: 16px;
+            pointer-events: none; z-index: 10;
         }
-
-        video { width: 100%; height: 100%; object-fit: cover; } /* Fills the square */
+        video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
         /* --- STATUS PANEL --- */
@@ -192,7 +160,7 @@
         }
         .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* --- TOAST --- */
+        /* --- TOAST & SUCCESS --- */
         #toast {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
             background: #1E293B; color: white; padding: 12px 24px;
@@ -203,7 +171,6 @@
         }
         #toast.visible { transform: translateX(-50%) translateY(0); }
 
-        /* --- SUCCESS OVERLAY --- */
         .success-modal {
             position: fixed; inset: 0; background: rgba(255,255,255,0.95);
             z-index: 2000; display: flex; flex-direction: column;
@@ -234,7 +201,7 @@
         <div id="view-home" class="page-view active">
             <div class="header">
                 <h1>Welcome</h1>
-                <p class="subtitle">Secure Attendance Verification</p>
+                <p class="subtitle">Secure Verification System</p>
             </div>
 
             <div class="card">
@@ -262,9 +229,8 @@
                 </div>
             </div>
 
-            <!-- Square Camera View -->
             <div class="cam-wrapper" id="att-cam">
-                <div class="scan-frame"></div> <!-- Visual guide -->
+                <div class="scan-frame"></div>
                 <video id="video-att" autoplay muted playsinline></video>
                 <canvas id="canvas-att"></canvas>
             </div>
@@ -309,11 +275,11 @@
             </div>
 
             <div class="tab-group">
-                <button class="tab-btn active" onclick="switchAdminTab('manual', this)">Manual Entry</button>
+                <button class="tab-btn active" onclick="switchAdminTab('manual', this)">Manual</button>
                 <button class="tab-btn" onclick="switchAdminTab('reports', this)">Reports</button>
             </div>
 
-            <!-- Manual Entry Section -->
+            <!-- Manual Entry -->
             <div id="tab-manual" class="admin-section">
                 <div class="card">
                     <div class="input-group">
@@ -326,11 +292,11 @@
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="input-group">
-                            <label>In Time</label>
+                            <label>In</label>
                             <input type="time" id="man-in" class="styled-input">
                         </div>
                         <div class="input-group">
-                            <label>Out Time</label>
+                            <label>Out</label>
                             <input type="time" id="man-out" class="styled-input">
                         </div>
                     </div>
@@ -340,20 +306,40 @@
                 </div>
             </div>
 
-            <!-- Reports Section -->
+            <!-- Advanced Reports -->
             <div id="tab-reports" class="admin-section" style="display:none;">
                 <div class="card">
+                    
+                    <!-- 1. Report Type Selector -->
                     <div class="input-group">
-                        <label>Report Month</label>
+                        <label>Report Type</label>
+                        <select id="report-type" class="styled-input" onchange="updateReportInputs()">
+                            <option value="summary">Monthly Summary (Days/Hrs)</option>
+                            <option value="daily">Daily Detailed (In/Out)</option>
+                            <option value="employee">Employee Detail (Monthly)</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Dynamic Inputs -->
+                    <div id="input-month" class="input-group">
+                        <label>Select Month</label>
                         <input type="month" id="report-month" class="styled-input">
                     </div>
+
+                    <div id="input-date" class="input-group" style="display:none;">
+                        <label>Select Date</label>
+                        <input type="date" id="report-date" class="styled-input">
+                    </div>
+
+                    <div id="input-name" class="input-group" style="display:none;">
+                        <label>Employee Name</label>
+                        <input type="text" id="report-name" class="styled-input" placeholder="Enter exact name">
+                    </div>
+
+                    <!-- 3. Actions -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <button class="btn btn-success" onclick="generateReport('excel')">
-                            Excel
-                        </button>
-                        <button class="btn btn-danger" onclick="generateReport('pdf')">
-                            PDF
-                        </button>
+                        <button class="btn btn-success" onclick="generateAdvancedReport('excel')">Excel</button>
+                        <button class="btn btn-danger" onclick="generateAdvancedReport('pdf')">PDF</button>
                     </div>
                 </div>
             </div>
@@ -361,7 +347,7 @@
 
     </main>
 
-    <!-- PROFESSIONAL BOTTOM NAV BAR -->
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="navTo('home', this)">
             <span class="material-icons-round">home</span>
@@ -377,23 +363,23 @@
         </button>
     </nav>
 
-    <!-- SUCCESS FULL SCREEN MODAL -->
+    <!-- SUCCESS MODAL -->
     <div id="success-modal" class="success-modal">
         <div class="checkmark">
             <span class="material-icons-round" style="font-size: 40px;">check</span>
         </div>
         <h2 id="success-title" style="margin: 0; font-size: 1.5rem; color: var(--text-main);">Success</h2>
-        <p id="success-desc" style="color: var(--text-sub); margin-top: 8px;">Action Completed</p>
+        <p id="success-desc" style="color: var(--text-sub); margin-top: 8px;">Completed</p>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
+    <!-- TOAST -->
     <div id="toast">
         <span class="material-icons-round" style="color: #4ade80;">info</span>
         <span id="toast-msg">Notification</span>
     </div>
 
     <script>
-        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        // --- PASTE FIREBASE CONFIG HERE ---
         const firebaseConfig = {
   apiKey: "AIzaSyC51fLDt-4UwSm8y6fwwIyah6JprTskAbI",
   authDomain: "metroirittyattendance.firebaseapp.com",
@@ -402,7 +388,7 @@
   messagingSenderId: "647706271340",
   appId: "1:647706271340:web:ab3c5257aeeeaaef34c249"
 };
-        // ---------------------------------------
+        // ----------------------------------
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -415,7 +401,6 @@
 
         window.onload = async () => {
             showToast("System starting...");
-            // Load Models
             const URL = 'https://justadudewhohacks.github.io/face-api.js/models';
             try {
                 await Promise.all([
@@ -434,10 +419,8 @@
         function navTo(view, el) {
             stopCamera();
             resetHomeUI();
-            
             document.querySelectorAll('.page-view').forEach(e => e.classList.remove('active'));
             document.getElementById('view-' + view).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
             el.classList.add('active');
         }
@@ -445,25 +428,25 @@
         function switchAdminTab(tab, el) {
             document.querySelectorAll('.admin-section').forEach(e => e.style.display = 'none');
             document.getElementById('tab-' + tab).style.display = 'block';
-            
             document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
             el.classList.add('active');
         }
 
-        // --- ATTENDANCE LOGIC ---
+        // --- ATTENDANCE LOGIC (STRICT) ---
         async function checkUserStatus() {
             const name = document.getElementById('att-name').value.trim();
-            if(!name) return showToast("Enter a name first");
+            if(!name) return showToast("Enter a name");
 
             const exists = labeledFaceDescriptors.some(lb => lb.label.toLowerCase() === name.toLowerCase());
-            if(!exists) return showToast("User not found");
+            if(!exists) return showToast("User not registered");
 
             showToast("Checking records...");
+            
+            // Check today's records without filtering by checkOut yet
             const todayStr = new Date().toISOString().split('T')[0];
             const snap = await db.collection('attendance')
                 .where('name', '==', name)
                 .where('dateStr', '==', todayStr)
-                .where('checkOut', '==', null)
                 .get();
 
             const panel = document.getElementById('status-panel');
@@ -474,17 +457,29 @@
             document.getElementById('btn-check-status').style.display = 'none';
             panel.style.display = 'block';
 
-            if (!snap.empty) {
-                statusTxt.innerText = `Hi ${name}, you are Clocked IN.`;
-                statusTxt.style.color = "var(--success)";
-                btnIn.style.display = 'none';
-                btnOut.style.display = 'flex';
-                btnOut.dataset.docId = snap.docs[0].id;
-            } else {
+            if (snap.empty) {
+                // No records today -> Fresh Start
                 statusTxt.innerText = `Hi ${name}, you are Clocked OUT.`;
                 statusTxt.style.color = "var(--text-sub)";
                 btnIn.style.display = 'flex';
                 btnOut.style.display = 'none';
+            } else {
+                // Record exists. Check if CheckOut is present
+                const data = snap.docs[0].data();
+                if (data.checkOut == null) {
+                    // Clocked In, waiting for Out
+                    statusTxt.innerText = `Hi ${name}, you are Clocked IN.`;
+                    statusTxt.style.color = "var(--success)";
+                    btnIn.style.display = 'none';
+                    btnOut.style.display = 'flex';
+                    btnOut.dataset.docId = snap.docs[0].id;
+                } else {
+                    // Clocked In AND Out -> Shift Done
+                    statusTxt.innerText = `Shift Completed for Today.`;
+                    statusTxt.style.color = "var(--danger)";
+                    btnIn.style.display = 'none';
+                    btnOut.style.display = 'none'; // Block re-entry
+                }
             }
         }
 
@@ -493,8 +488,7 @@
             targetUser = document.getElementById('att-name').value.trim();
             
             document.getElementById('status-panel').style.display = 'none';
-            const camWrapper = document.getElementById('att-cam');
-            camWrapper.classList.add('active');
+            document.getElementById('att-cam').classList.add('active');
             document.getElementById('btn-cancel').style.display = 'flex';
 
             const videoEl = document.getElementById('video-att');
@@ -563,11 +557,9 @@
 
         // --- REGISTRATION ---
         function openRegCam() {
-            const camWrapper = document.getElementById('reg-cam');
-            camWrapper.classList.add('active');
+            document.getElementById('reg-cam').classList.add('active');
             document.getElementById('btn-open-reg').style.display = 'none';
             document.getElementById('btn-capture').style.display = 'flex';
-            
             const vid = document.getElementById('video-reg');
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(s => { currentStream = s; vid.srcObject = s; });
         }
@@ -575,7 +567,6 @@
         async function captureFace() {
             const name = document.getElementById('reg-name').value.trim();
             if(!name) return showToast("Enter Name");
-
             const vid = document.getElementById('video-reg');
             const detection = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
 
@@ -588,9 +579,7 @@
                 document.getElementById('btn-open-reg').style.display = 'flex';
                 document.getElementById('reg-cam').classList.remove('active');
                 showSuccess("Registered", name);
-            } else {
-                showToast("No face detected");
-            }
+            } else { showToast("No face detected"); }
         }
 
         // --- ADMIN & REPORTS ---
@@ -599,67 +588,117 @@
             const date = document.getElementById('man-date').value;
             const tIn = document.getElementById('man-in').value;
             const tOut = document.getElementById('man-out').value;
-
             if(!name || !date || !tIn) return showToast("Incomplete Data");
 
             const dIn = new Date(`${date}T${tIn}`);
             const dOut = tOut ? new Date(`${date}T${tOut}`) : null;
-
-            await db.collection('attendance').add({
-                name: name, dateStr: date,
-                checkIn: firebase.firestore.Timestamp.fromDate(dIn),
-                checkOut: dOut ? firebase.firestore.Timestamp.fromDate(dOut) : null
-            });
-            showSuccess("Saved", "Manual Entry Created");
+            await db.collection('attendance').add({ name: name, dateStr: date, checkIn: firebase.firestore.Timestamp.fromDate(dIn), checkOut: dOut ? firebase.firestore.Timestamp.fromDate(dOut) : null });
+            showSuccess("Saved", "Record Created");
         }
 
-        async function generateReport(type) {
-            const monthVal = document.getElementById('report-month').value;
-            if(!monthVal) return showToast("Select Month");
+        // --- ADVANCED REPORTING ENGINE ---
+        function updateReportInputs() {
+            const type = document.getElementById('report-type').value;
+            document.getElementById('input-month').style.display = (type === 'summary' || type === 'employee') ? 'block' : 'none';
+            document.getElementById('input-date').style.display = (type === 'daily') ? 'block' : 'none';
+            document.getElementById('input-name').style.display = (type === 'employee') ? 'block' : 'none';
+        }
 
+        async function generateAdvancedReport(format) {
+            const type = document.getElementById('report-type').value;
             showToast("Generating...");
-            const snap = await db.collection('attendance')
-                .where('dateStr', '>=', `${monthVal}-01`)
-                .where('dateStr', '<=', `${monthVal}-31`)
-                .get();
-
-            if(snap.empty) return showToast("No Records Found");
-
-            let reportData = {};
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(!reportData[d.name]) reportData[d.name] = { days: 0, hours: 0, details: [] };
-                
-                let h = 0; let outStr = "Active";
-                if(d.checkIn && d.checkOut) {
-                    h = (d.checkOut.toDate() - d.checkIn.toDate()) / 36e5;
-                    outStr = d.checkOut.toDate().toLocaleTimeString();
-                }
-                reportData[d.name].days++;
-                reportData[d.name].hours += h;
-                reportData[d.name].details.push({ date: d.dateStr, in: d.checkIn.toDate().toLocaleTimeString(), out: outStr, h: h.toFixed(2) });
-            });
-
+            
+            let query = db.collection('attendance');
             let rows = [];
-            for (let [n, d] of Object.entries(reportData)) {
-                rows.push({ Name: n, Date: "TOTAL", In: "-", Out: "-", Hours: d.hours.toFixed(2), Days: d.days });
-                d.details.forEach(l => rows.push({ Name: "", Date: l.date, In: l.in, Out: l.out, Hours: l.h, Days: "" }));
-                rows.push({});
+            let fileName = "Report";
+
+            // 1. MONTHLY SUMMARY (One row per employee: Days, Hours)
+            if (type === 'summary') {
+                const month = document.getElementById('report-month').value;
+                if(!month) return showToast("Select Month");
+                fileName = `Summary_${month}`;
+
+                const snap = await query.where('dateStr', '>=', `${month}-01`).where('dateStr', '<=', `${month}-31`).get();
+                if(snap.empty) return showToast("No Data");
+
+                let data = {};
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if(!data[d.name]) data[d.name] = { days: 0, hours: 0 };
+                    
+                    let h = 0;
+                    if(d.checkIn && d.checkOut) h = (d.checkOut.toDate() - d.checkIn.toDate()) / 36e5;
+                    data[d.name].days++;
+                    data[d.name].hours += h;
+                });
+
+                rows = [['Employee Name', 'Total Days', 'Total Hours']];
+                for(let [name, val] of Object.entries(data)) {
+                    rows.push([name, val.days, val.hours.toFixed(2)]);
+                }
             }
 
-            if(type === 'excel') {
-                const ws = XLSX.utils.json_to_sheet(rows);
+            // 2. DAILY DETAILED (Rows for selected day)
+            else if (type === 'daily') {
+                const date = document.getElementById('report-date').value;
+                if(!date) return showToast("Select Date");
+                fileName = `Daily_${date}`;
+
+                const snap = await query.where('dateStr', '==', date).get();
+                if(snap.empty) return showToast("No Data");
+
+                rows = [['Name', 'In Time', 'Out Time', 'Duration (Hrs)']];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    let out = "-", h = "0.00";
+                    if(d.checkOut) {
+                        out = d.checkOut.toDate().toLocaleTimeString();
+                        h = ((d.checkOut.toDate() - d.checkIn.toDate()) / 36e5).toFixed(2);
+                    }
+                    rows.push([d.name, d.checkIn.toDate().toLocaleTimeString(), out, h]);
+                });
+            }
+
+            // 3. EMPLOYEE DETAILED (Specific employee for a month)
+            else if (type === 'employee') {
+                const month = document.getElementById('report-month').value;
+                const name = document.getElementById('report-name').value.trim();
+                if(!month || !name) return showToast("Missing Info");
+                fileName = `Emp_${name}_${month}`;
+
+                const snap = await query.where('name', '==', name)
+                    .where('dateStr', '>=', `${month}-01`)
+                    .where('dateStr', '<=', `${month}-31`)
+                    .orderBy('dateStr').get(); // Note: Requires Firestore Index (created automatically on error)
+
+                if(snap.empty) return showToast("No Data");
+
+                rows = [['Date', 'In Time', 'Out Time', 'Duration']];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    let out = "-", h = "0.00";
+                    if(d.checkOut) {
+                        out = d.checkOut.toDate().toLocaleTimeString();
+                        h = ((d.checkOut.toDate() - d.checkIn.toDate()) / 36e5).toFixed(2);
+                    }
+                    rows.push([d.dateStr, d.checkIn.toDate().toLocaleTimeString(), out, h]);
+                });
+            }
+
+            // EXPORT
+            if(format === 'excel') {
+                const ws = XLSX.utils.aoa_to_sheet(rows);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Data");
-                XLSX.writeFile(wb, `Report_${monthVal}.xlsx`);
+                XLSX.utils.book_append_sheet(wb, ws, "Report");
+                XLSX.writeFile(wb, `${fileName}.xlsx`);
             } else {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                doc.text(`Report: ${monthVal}`, 14, 15);
-                doc.autoTable({ head: [['Name', 'Date', 'In', 'Out', 'Hours', 'Days']], body: rows.map(r => Object.values(r)), startY: 20 });
-                doc.save(`Report_${monthVal}.pdf`);
+                doc.text(fileName.replace(/_/g, " "), 14, 15);
+                doc.autoTable({ head: [rows[0]], body: rows.slice(1), startY: 20 });
+                doc.save(`${fileName}.pdf`);
             }
-            showSuccess("Downloaded", "Report Saved");
+            showSuccess("Exported", fileName);
         }
 
         // --- UTILS ---
